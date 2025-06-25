@@ -28,7 +28,7 @@ def whitelist(identifier):
 def set_telegram_token(token):
     """Configurar el Bot Token de Telegram"""
     config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
+    config_file = Path('../config/telegram.conf')
     
     if config_file.exists():
         config.read(config_file)
@@ -48,7 +48,7 @@ def set_telegram_token(token):
 def set_telegram_chat(chat):
     """Configurar el Chat ID de Telegram"""
     config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
+    config_file = Path('../config/telegram.conf')
     
     if config_file.exists():
         config.read(config_file)
@@ -69,7 +69,7 @@ def set_telegram_chat(chat):
 def set_log_level(level):
     """Configurar el nivel de logging"""
     config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
+    config_file = Path('../config/telegram.conf')
     
     if config_file.exists():
         config.read(config_file)
@@ -89,7 +89,7 @@ def set_log_level(level):
 def set_alert_message(message):
     """Configurar mensaje de alerta personalizado"""
     config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
+    config_file = Path('../config/telegram.conf')
     
     if config_file.exists():
         config.read(config_file)
@@ -108,7 +108,7 @@ def set_alert_message(message):
 def show_config():
     """Mostrar la configuración actual"""
     config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
+    config_file = Path('../config/telegram.conf')
     
     if not config_file.exists():
         click.echo("⚠️ No existe archivo de configuración")
