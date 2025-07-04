@@ -1,20 +1,18 @@
 # Instrucciones de uso de NETSCANALERT
 NETSCANALERT es un sistema de escaneo y monitoreo continuo de redes con el fin de detectar de forma automatizada equipos no autorizados y con capacidad de reportarlos a través de sistemas de mensajería instantánea.
-## 0.- Clonar el repositorio:
-```bash
-    sudo apt install git
-    git clone https://github.com/davidog7/netScanAlert
-```
 ## 1.- Instalar dependencias:
 ```bash
-    sudo apt install python3
-    sudo apt install python3-pip
-    sudo apt install arp-scan
+    sudo apt update
+    sudo apt install git python3 python3-pip python3-venv arp-scan #(requiere permisos sudo)
+    # Crear el entorno virtual en tu home
+    mkdir -p ~/venvs
+    python3 -m venv ~/venvs/netScanAlert
+    # Activar el entorno
+    source ~/venvs/netScanAlert/bin/activate
+    # Clonar el repositorio
+    git clone https://github.com/davidog7/netScanAlert
     cd netScanAlert
     pip install -r requirements.txt
-    # Instala arp-scan (requiere permisos sudo)
-    sudo apt install arp-scan  # Para Ubuntu/Debian o
-    sudo yum install arp-scan  # Para CentOS/RHEL
 ```
 ## 2.- Configurar:
 ```bash

@@ -1,77 +1,50 @@
 #!/usr/bin/env python3
 import click
-import configparser
+import os
 from pathlib import Path
 import sys
+from dotenv import load_dotenv, set_key
 from inventory import FileInventory
+
+# Cargar variables de entorno al inicio
+load_dotenv()
 
 @click.group()
 def cli():
     """Sistema de monitoreo de red - Interfaz de administración"""
     pass
 
-def load_telegram_config():
-    """Carga la configuración de Telegram con depuración mejorada"""
-    config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
+def verify_telegram_config():
+    """Verifica la configuración de Telegram"""
+    token = os.getenv('TELEGRAM_BOT_TOKEN')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
     
-    # Verificar existencia del archivo
-    if not config_file.exists():
-        print(f"❌ Error: Archivo de configuración no encontrado en {config_file.absolute()}", file=sys.stderr)
-        print("Solución: Crea el archivo config/telegram.conf con la estructura adecuada", file=sys.stderr)
-        return None
-    
-    # Leer archivo
-    try:
-        config.read(config_file)
-    except Exception as e:
-        print(f"❌ Error leyendo archivo de configuración: {str(e)}", file=sys.stderr)
-        return None
-    
-    # Verificar sección [telegram]
-    if 'telegram' not in config:
-        print("❌ Error: Sección [telegram] no encontrada en el archivo de configuración", file=sys.stderr)
-        print("Secciones encontradas:", config.sections(), file=sys.stderr)
-        return None
-    
-    # Verificar campos obligatorios
-    required_fields = ['bot_token', 'chat_id']
-    missing_fields = [field for field in required_fields if field not in config['telegram']]
-    
-    if missing_fields:
-        print(f"❌ Error: Campos faltantes en configuración: {', '.join(missing_fields)}", file=sys.stderr)
-        return None
-    
-    return config['telegram']
+    if not token or not chat_id:
+        print("⚠️ Configuración de Telegram incompleta en .env", file=sys.stderr)
+        print("Usa los comandos set-telegram-token y set-telegram-chat", file=sys.stderr)
+        return False
+    return True
 
 @cli.command()
 def show_config():
-    """Mostrar la configuración actual con verificación detallada"""
-    telegram_config = load_telegram_config()
+    """Mostrar la configuración actual"""
+    print("\n🔧 Configuración actual:")
     
-    if not telegram_config:
-        print("\n💡 Ejemplo de archivo config/telegram.conf correcto:")
-        print("""
-[telegram]
-bot_token = 123456789:AAFmBbQdEeFfGgHhIiJjKkLlMmNnOoPpQqRr
-chat_id = -1001234567890
-log_level = warning
-alert_message = ⚠️ ALERTA: Nuevo dispositivo detectado
-""")
-        return
+    # Mostrar configuración de Telegram
+    token = os.getenv('TELEGRAM_BOT_TOKEN')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
     
-    print("\n🔧 Configuración actual de Telegram:")
-    for key, value in telegram_config.items():
-        # Ocultar parte del token por seguridad
-        displayed_value = (value[:4] + '...' + value[-4:]) if 'token' in key.lower() else value
-        print(f"{key.upper():<15}: {displayed_value}")
+    print("\nTelegram:")
+    print(f"BOT_TOKEN: {token[:4]}...{token[-4:]}" if token else "❌ No configurado")
+    print(f"CHAT_ID: {chat_id}" if chat_id else "❌ No configurado")
     
-    # Verificación adicional de valores
-    if not telegram_config['bot_token'].count(':') == 1:
-        print("\n⚠️ Advertencia: El bot_token no parece tener el formato correcto (debería ser '123456789:ABCdefGHIjklMNopQRSTuvwXYZ')")
-    
-    if not telegram_config['chat_id'].startswith('-100'):
-        print("\n⚠️ Advertencia: El chat_id para grupos normalmente comienza con -100")
+    # Mostrar configuración de red
+    networks_file = Path('config/networks.txt')
+    if networks_file.exists():
+        print("\nRedes a monitorear:")
+        print(networks_file.read_text())
+    else:
+        print("\n❌ networks.txt no encontrado")
 
 @cli.command()
 @click.argument('identifier')
@@ -94,92 +67,64 @@ def whitelist(identifier):
 @cli.command()
 @click.option('--token', prompt='Bot Token de Telegram', hide_input=True)
 def set_telegram_token(token):
-    """Configurar el Bot Token de Telegram"""
-    config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
-    
-    if config_file.exists():
-        config.read(config_file)
-    
-    if 'telegram' not in config:
-        config['telegram'] = {}
-    
-    config['telegram']['bot_token'] = token
-    
-    with open(config_file, 'w') as f:
-        config.write(f)
-    
-    print("✅ Token de Telegram configurado correctamente")
+    """Configurar el Bot Token de Telegram en .env"""
+    set_key('.env', 'TELEGRAM_BOT_TOKEN', token)
+    print("✅ Token de Telegram guardado en .env")
+    print("💡 Asegúrate de que .env está en .gitignore")
 
 @cli.command()
 @click.option('--chat', prompt='Chat ID de Telegram')
 def set_telegram_chat(chat):
-    """Configurar el Chat ID de Telegram"""
-    config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
-    
-    if config_file.exists():
-        config.read(config_file)
-    
-    if 'telegram' not in config:
-        config['telegram'] = {}
-    
-    config['telegram']['chat_id'] = chat
-    
-    with open(config_file, 'w') as f:
-        config.write(f)
-    
-    print("✅ Chat ID de Telegram configurado correctamente")
+    """Configurar el Chat ID de Telegram en .env"""
+    set_key('.env', 'TELEGRAM_CHAT_ID', chat)
+    print("✅ Chat ID de Telegram guardado en .env")
 
 @cli.command()
 @click.option('--level', type=click.Choice(['debug', 'info', 'warning', 'error']), 
               prompt='Nivel de log (debug/info/warning/error)')
 def set_log_level(level):
     """Configurar el nivel de logging"""
-    config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
-    
-    if config_file.exists():
-        config.read(config_file)
-    
-    if 'telegram' not in config:
-        config['telegram'] = {}
-    
-    config['telegram']['log_level'] = level
-    
-    with open(config_file, 'w') as f:
-        config.write(f)
-    
+    set_key('.env', 'LOG_LEVEL', level)
     print(f"✅ Nivel de log configurado a {level}")
 
 @cli.command()
 @click.option('--message', prompt='Mensaje de alerta personalizado')
 def set_alert_message(message):
     """Configurar mensaje de alerta personalizado"""
-    config = configparser.ConfigParser()
-    config_file = Path('config/telegram.conf')
-    
-    if config_file.exists():
-        config.read(config_file)
-    
-    if 'telegram' not in config:
-        config['telegram'] = {}
-    
-    config['telegram']['alert_message'] = message
-    
-    with open(config_file, 'w') as f:
-        config.write(f)
-    
-    print("✅ Mensaje de alerta configurado correctamente")
+    set_key('.env', 'ALERT_MESSAGE', message)
+    print("✅ Mensaje de alerta configurado")
 
-if __name__ == "__main__":
-    # Crear directorios necesarios
+@cli.command()
+def init():
+    """Inicializar estructura de directorios y archivos"""
     Path('config').mkdir(exist_ok=True)
     Path('data').mkdir(exist_ok=True)
     
-    # Verificar archivo de configuración
-    if not Path('config/telegram.conf').exists():
-        print("ℹ️ Archivo config/telegram.conf no encontrado. Usa los comandos set-telegram-* para crearlo")
+    if not Path('.env').exists():
+        with open('.env', 'w') as f:
+            f.write("# Configuración de Telegram\n")
+            f.write("TELEGRAM_BOT_TOKEN=\n")
+            f.write("TELEGRAM_CHAT_ID=\n")
+            f.write("\n# Configuración de la aplicación\n")
+            f.write("LOG_LEVEL=warning\n")
+            f.write('ALERT_MESSAGE="⚠️ ALERTA: Nuevo dispositivo detectado en la red"\n')
+        
+        print("✅ Archivo .env creado")
+        print("💡 Completa los valores faltantes y asegúrate de añadir .env a .gitignore")
+    
+    if not Path('config/networks.txt').exists():
+        with open('config/networks.txt', 'w') as f:
+            f.write("# Lista de redes a monitorear (una por línea)\n")
+            f.write("# Ejemplo:\n")
+            f.write("# 192.168.1.0/24\n")
+        
+        print("✅ Archivo networks.txt creado")
+    
+    print("\nEstructura inicial creada. Usa los comandos set-telegram-* para configurar.")
+
+if __name__ == "__main__":
+    # Verificar estructura inicial
+    if not Path('.env').exists():
+        print("⚠️ Archivo .env no encontrado. Ejecuta 'python cli.py init' para inicializar")
     
     cli()
-    
