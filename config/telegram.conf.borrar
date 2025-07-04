@@ -1,5 +1,0 @@
-[telegram]
-bot_token = 7788807247:AAG12q7wxLng8RE13BkWQfqpHeRvLhqdtyA
-chat_id = -1004902439988
-log_level = warning
-alert_message = ⚠️ ALERTA: Nuevo dispositivo detectado en la red
