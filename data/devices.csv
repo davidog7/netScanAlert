@@ -1,2 +1,1 @@
-mac,ip,name,os,vendor,status,first_seen,last_seen
-52:55:0a:00:02:02,10.0.2.2,,unknown,(Unknown: locally administered),unknown,2025-06-25T11:39:01.289895,2025-06-25T11:39:01.289895
+mac,ip,name,os,vendor,status,first_seen,last_seen52:54:00:12:35:00,10.0.2.1,,unknown,QEMU,unknown,2025-07-02T13:37:29.646354,2025-07-02T13:37:29.646354

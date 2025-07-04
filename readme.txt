@@ -6,6 +6,7 @@ Instrucciones de uso
 
 1.- Instalar dependencias:
     sudo apt install python3
+    sudo apt install python3-pip
     pip install -r requirements.txt
     # Instala arp-scan (requiere permisos sudo)
     sudo apt install arp-scan  # Para Ubuntu/Debian o

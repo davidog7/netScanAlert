@@ -1,5 +1,5 @@
 # Comentarios con # son ignorados:
-#192.168.1.0/24    # Red local principal
+#10.0.2.0/24    # Red local principal
 #10.238.0.0/24     # Red corporativa
 # También puedes especificar rangos específicos:
 #192.168.2.1-192.168.2.50
