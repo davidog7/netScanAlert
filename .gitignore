@@ -1,3 +1,6 @@
 # Archivos de configuración secreta:
 .env
 config/.env
+config/networks.txt
+src/__pycache__
+data
