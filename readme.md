@@ -1,5 +1,5 @@
-# Instrucciones de uso de NETSCANALERT
-NETSCANALERT es un sistema de escaneo y monitoreo continuo de redes con el fin de detectar de forma automatizada equipos no autorizados y con capacidad de reportarlos a través de sistemas de mensajería instantánea.
+# Instrucciones de uso de netScanAlert
+NetScanAlert es un sistema de escaneo y monitoreo continuo de redes con el fin de detectar de forma automatizada equipos no autorizados y con capacidad de reportarlos a través de sistemas de mensajería instantánea.
 ## 1.- Instalar dependencias:
 ```bash
     sudo apt update
