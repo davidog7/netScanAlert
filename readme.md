@@ -32,5 +32,33 @@ NETSCANALERT es un sistema de escaneo y monitoreo continuo de redes con el fin d
 ```bash
    # Ejecutar el programa en modo monitoreo:
         python3 netScanAlert.py 
+    # O en segundo plano:
+        nohup python3 netScanAlert.py > /dev/null 2>&1 &
+    # monitoreo del log
+    tail -f netScanAlert.log
 ```
 
+## 4.- CLI:
+```bash
+$ python cli.py --help
+Usage: cli.py [OPTIONS] COMMAND [ARGS]...
+
+  Sistema de Monitoreo de Red - Interfaz de Administración
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  blacklist         Añade una MAC a la lista negra
+  cleanup           Normaliza y limpia todos los datos del inventario
+  init              Inicializa la estructura del proyecto
+  list-devices      Lista todos los dispositivos conocidos
+  network-devices   Lista dispositivos en una red específica
+  set-alert-message Configura el mensaje de alerta personalizado
+  set-log-level     Configura el nivel de logging
+  set-telegram-chat Configura el Chat ID de Telegram
+  set-telegram-token Configura el Bot Token de Telegram
+  show-config       Muestra la configuración actual
+  validate          Valida una dirección IP o rango de red
+  whitelist         Añade un dispositivo (MAC o IP) a la lista blanca
+  ```
