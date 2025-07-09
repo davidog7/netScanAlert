@@ -1,21 +1,30 @@
-# Requerimientos principales
-click>=8.0.0          # Para la interfaz CLI
-requests>=2.26.0      # Para las notificaciones de Telegram
-python-telegram-bot>=13.7  # Opcional (alternativa más completa para Telegram)
-python-dotenv>=0.19.0 # Para manejar configuraciones (opcional pero recomendado)
-configparser>=5.0.2   # Para leer archivos de configuración
+# Dependencias principales
+python-dotenv>=0.19.0      # Para manejo de variables de entorno
+click>=8.0.0               # Para la interfaz de línea de comandos
+requests>=2.25.1           # Para peticiones HTTP (notificaciones Telegram)
 
-# Herramientas de red (dependencias para el escaneo)
-scapy>=2.4.5          # Para escaneo ARP/ICMP (alternativa a arp-scan, requiere permisos de root)
-python-nmap>=0.7.1    # Para detección de SO y escaneo avanzado (opcional)
+# Procesamiento de redes
+ipaddress>=1.0.23          # Para manejo de direcciones IP (incluido en stdlib en Python 3+)
+python-nmap>=0.7.1         # Opcional: para escaneos avanzados
+scapy>=2.4.5               # Opcional: alternativa a arp-scan
 
-# Utilidades
-python-dateutil>=2.8.2 # Para manejo de fechas/horas
-tqdm>=4.62.0          # Para barras de progreso (opcional)
+# Manejo de datos
+pandas>=1.3.0              # Para análisis de datos (opcional)
+python-dateutil>=2.8.2     # Para manejo de fechas/horas
 
-# Para el formato CSV
-pandas>=1.3.0         # Opcional (para manejo avanzado de CSV)
+# Desarrollo y testing
+flake8>=3.9.2              # Linter para verificación de código
+black>=21.9b0              # Formateador de código
+pytest>=6.2.5              # Framework de testing
+pytest-cov>=2.12.1         # Reporte de cobertura de tests
 
-# Entorno de desarrollo (opcional)
-flake8>=3.9.2         # Linter
-black>=21.9b0         # Formateador de código
+# Documentación
+mkdocs>=1.2.3              # Para generación de documentación
+mkdocs-material>=7.3.6     # Tema para la documentación
+
+# Seguridad
+pyOpenSSL>=20.0.1          # Para conexiones seguras
+cryptography>=3.4.7        # Para funciones criptográficas
+
+# Compatibilidad
+typing-extensions>=3.10.0  # Para soporte de tipos en Python <3.10
