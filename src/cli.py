@@ -20,7 +20,7 @@ def cli():
 def verify_config() -> bool:
     """Verifica la configuración esencial"""
     required_files = [
-        '.env',
+        'config/.env',
         'config/networks.txt',
         'data/devices.csv'
     ]
@@ -41,9 +41,9 @@ def init():
     Path('config').mkdir(exist_ok=True)
     Path('data').mkdir(exist_ok=True)
     
-    # Archivo .env
-    if not Path('.env').exists():
-        with open('.env', 'w') as f:
+    # Archivo config/.env
+    if not Path('config/.env').exists():
+        with open('config/.env', 'w') as f:
             f.write("# Configuración de Telegram\n")
             f.write("TELEGRAM_BOT_TOKEN=\n")
             f.write("TELEGRAM_CHAT_ID=\n")
@@ -69,7 +69,7 @@ def init():
             ])
     
     click.echo("✅ Estructura del proyecto inicializada")
-    click.echo("ℹ️ Completa los valores en .env y config/networks.txt")
+    click.echo("ℹ️ Completa los valores en config/.env y config/networks.txt")
 
 @cli.command()
 def show_config():
@@ -169,15 +169,15 @@ def blacklist(mac):
 @click.option('--token', prompt='Bot Token de Telegram', hide_input=True)
 def set_telegram_token(token):
     """Configura el Bot Token de Telegram"""
-    set_key('.env', 'TELEGRAM_BOT_TOKEN', token)
+    set_key('config/.env', 'TELEGRAM_BOT_TOKEN', token)
     click.echo("✅ Token de Telegram actualizado")
-    click.echo("💡 Asegúrate de que .env está en .gitignore")
+    click.echo("💡 Asegúrate de que config/.env está en .gitignore")
 
 @cli.command()
 @click.option('--chat', prompt='Chat ID de Telegram')
 def set_telegram_chat(chat):
     """Configura el Chat ID de Telegram"""
-    set_key('.env', 'TELEGRAM_CHAT_ID', chat)
+    set_key('config/.env', 'TELEGRAM_CHAT_ID', chat)
     click.echo("✅ Chat ID de Telegram actualizado")
 
 @cli.command()
@@ -185,14 +185,14 @@ def set_telegram_chat(chat):
               prompt='Nivel de log (debug/info/warning/error)')
 def set_log_level(level):
     """Configura el nivel de logging"""
-    set_key('.env', 'LOG_LEVEL', level.lower())
+    set_key('config/.env', 'LOG_LEVEL', level.lower())
     click.echo(f"✅ Nivel de log configurado a {level.lower()}")
 
 @cli.command()
 @click.option('--message', prompt='Mensaje de alerta personalizado')
 def set_alert_message(message):
     """Configura el mensaje de alerta personalizado"""
-    set_key('.env', 'ALERT_MESSAGE', message)
+    set_key('config/.env', 'ALERT_MESSAGE', message)
     click.echo("✅ Mensaje de alerta actualizado")
 
 @cli.command()
@@ -279,7 +279,7 @@ def validate(ip_or_network):
 
 if __name__ == "__main__":
     # Verificar estructura básica
-    if not Path('.env').exists() and 'init' not in sys.argv:
+    if not Path('config/.env').exists() and 'init' not in sys.argv:
         click.echo("⚠️ Ejecuta primero 'python cli.py init' para inicializar", err=True)
         sys.exit(1)
     

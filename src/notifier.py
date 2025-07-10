@@ -190,4 +190,4 @@ if __name__ == "__main__":
             print("❌ Fallo al enviar alerta de prueba")
     else:
         print("❌ No se pudo conectar con Telegram")
-        print("Verifica tu configuración en .env")
+        print("Verifica tu configuración en config/.env")
