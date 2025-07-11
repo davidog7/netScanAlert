@@ -1,286 +1,158 @@
 #!/usr/bin/env python3
 import click
-import csv
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional
-import ipaddress
 from dotenv import load_dotenv, set_key
 
+# Configurar la ruta del archivo .env (subir un nivel y entrar a config/)
+BASE_DIR = Path(__file__).parent.parent
+ENV_PATH = BASE_DIR / "config" / ".env"
+
 # Cargar variables de entorno
-load_dotenv()
+load_dotenv(dotenv_path=ENV_PATH)
+
+def verify_env_file():
+    """Verifica que el archivo .env exista y sea legible"""
+    if not ENV_PATH.exists():
+        click.echo(f"❌ Error: No se encontró el archivo .env en {ENV_PATH}", err=True)
+        click.echo("Ejecute primero: python cli.py init", err=True)
+        return False
+    
+    try:
+        ENV_PATH.read_text(encoding='utf-8')
+        return True
+    except Exception as e:
+        click.echo(f"❌ Error leyendo .env: {str(e)}", err=True)
+        return False
 
 @click.group()
 def cli():
     """Sistema de Monitoreo de Red - Interfaz de Administración"""
     pass
 
-def verify_config() -> bool:
-    """Verifica la configuración esencial"""
-    required_files = [
-        'config/.env',
-        'config/networks.txt',
-        'data/devices.csv'
-    ]
-    
-    missing = [f for f in required_files if not Path(f).exists()]
-    if missing:
-        click.echo("\n⚠️ Archivos esenciales faltantes:", err=True)
-        for f in missing:
-            click.echo(f"- {f}", err=True)
-        click.echo("\nEjecuta 'python cli.py init' para inicializar", err=True)
-        return False
-    return True
-
 @cli.command()
 def init():
     """Inicializa la estructura del proyecto"""
-    # Directorios
-    Path('config').mkdir(exist_ok=True)
-    Path('data').mkdir(exist_ok=True)
+    # Crear directorios necesarios
+    (BASE_DIR / "config").mkdir(exist_ok=True)
+    (BASE_DIR / "data").mkdir(exist_ok=True)
     
-    # Archivo config/.env
-    if not Path('config/.env').exists():
-        with open('config/.env', 'w') as f:
-            f.write("# Configuración de Telegram\n")
-            f.write("TELEGRAM_BOT_TOKEN=\n")
-            f.write("TELEGRAM_CHAT_ID=\n")
-            f.write("\n# Configuración de la aplicación\n")
-            f.write("LOG_LEVEL=warning\n")
-            f.write('ALERT_MESSAGE="⚠️ ALERTA: Nuevo dispositivo detectado - MAC: {mac} IP: {ip} Vendor: {vendor}"\n')
-    
-    # networks.txt
-    if not Path('config/networks.txt').exists():
-        with open('config/networks.txt', 'w') as f:
-            f.write("# Redes a monitorear (una por línea)\n")
-            f.write("# Ejemplo:\n")
-            f.write("# 192.168.1.0/24\n")
-            f.write("# 10.0.0.0/8\n")
-    
-    # devices.csv
-    if not Path('data/devices.csv').exists():
-        with open('data/devices.csv', 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                'mac', 'ip', 'name', 'os', 'vendor',
-                'status', 'first_seen', 'last_seen'
-            ])
-    
-    click.echo("✅ Estructura del proyecto inicializada")
-    click.echo("ℹ️ Completa los valores en config/.env y config/networks.txt")
+    # Crear archivo .env si no existe
+    if not ENV_PATH.exists():
+        ENV_PATH.write_text(
+            "# Configuración de Telegram\n"
+            "TELEGRAM_BOT_TOKEN=\n"
+            "TELEGRAM_CHAT_ID=\n\n"
+            "# Configuración de la aplicación\n"
+            "LOG_LEVEL=info\n"
+            "SCAN_INTERVAL=300\n"
+        )
+        click.echo(f"✅ Archivo .env creado en {ENV_PATH}")
+    else:
+        click.echo("ℹ️ El archivo .env ya existe")
+
+    click.echo("\nEstructura inicial creada. Ahora configure:")
+    click.echo("1. python cli.py set-telegram-token")
+    click.echo("2. python cli.py set-telegram-chat")
 
 @cli.command()
 def show_config():
     """Muestra la configuración actual"""
-    if not verify_config():
-        return
+    if not verify_env_file():
+        sys.exit(1)
     
-    # Mostrar configuración de Telegram
-    click.echo("\n🔧 Configuración de Telegram:")
+    # Recargar variables para asegurar los últimos cambios
+    load_dotenv(dotenv_path=ENV_PATH, override=True)
+    
     token = os.getenv('TELEGRAM_BOT_TOKEN')
     chat_id = os.getenv('TELEGRAM_CHAT_ID')
     
-    click.echo(f"BOT_TOKEN: {'✅' if token else '❌ No configurado'}")
+    click.echo("\n🔧 Configuración actual:")
+    click.echo(f"📁 Ubicación .env: {ENV_PATH.absolute()}")
+    
+    # Mostrar configuración de Telegram
     if token:
-        click.echo(f"  (últimos 4 chars: {token[-4:]})")
-    click.echo(f"CHAT_ID: {'✅' if chat_id else '❌ No configurado'}")
+        click.echo(f"✅ TELEGRAM_BOT_TOKEN: {'*'*12}{token[-4:]}")
+    else:
+        click.echo("❌ TELEGRAM_BOT_TOKEN: No configurado")
     
-    # Mostrar redes a monitorear
-    click.echo("\n🌐 Redes a monitorear:")
-    try:
-        with open('config/networks.txt') as f:
-            networks = [line.strip() for line in f if line.strip() and not line.startswith('#')]
-            
-            valid_networks = []
-            invalid_networks = []
-            
-            for net in networks:
-                try:
-                    network = ipaddress.ip_network(net, strict=False)
-                    valid_networks.append(str(network))
-                except ValueError:
-                    invalid_networks.append(net)
-            
-            if valid_networks:
-                click.echo("Redes válidas:")
-                for net in valid_networks:
-                    click.echo(f"- {net}")
-            
-            if invalid_networks:
-                click.echo("\n❌ Redes inválidas (serán ignoradas):")
-                for net in invalid_networks:
-                    click.echo(f"- {net}")
-            
-            if not valid_networks and not invalid_networks:
-                click.echo("No hay redes configuradas")
-    except FileNotFoundError:
-        click.echo("❌ No se encontró config/networks.txt")
-
-@cli.command()
-@click.argument('identifier')
-def whitelist(identifier):
-    """Añade un dispositivo (MAC o IP) a la lista blanca"""
-    if not verify_config():
-        return
+    if chat_id:
+        click.echo(f"✅ TELEGRAM_CHAT_ID: {chat_id}")
+    else:
+        click.echo("❌ TELEGRAM_CHAT_ID: No configurado")
     
-    from inventory import FileInventory
-    inv = FileInventory()
-    
-    # Determinar si es MAC o IP
-    if ':' in identifier or '-' in identifier:  # MAC
-        normalized_mac = inv.normalize_mac(identifier)
-        if not normalized_mac:
-            click.echo(f"❌ Formato MAC inválido: {identifier}", err=True)
-            click.echo("Formato esperado: 00:11:22:33:44:55", err=True)
-            return
-        
-        inv.whitelist_device(normalized_mac)
-        click.echo(f"✅ MAC {normalized_mac} añadida a la lista blanca")
-    else:  # IP
-        if not inv.validate_ip(identifier):
-            click.echo(f"❌ IP inválida: {identifier}", err=True)
-            return
-        
-        inv.whitelist_device(identifier)
-        click.echo(f"✅ IP {identifier} añadida a la lista blanca")
-
-@cli.command()
-@click.argument('mac')
-def blacklist(mac):
-    """Añade una MAC a la lista negra"""
-    if not verify_config():
-        return
-    
-    from inventory import FileInventory
-    inv = FileInventory()
-    
-    normalized_mac = inv.normalize_mac(mac)
-    if not normalized_mac:
-        click.echo(f"❌ Formato MAC inválido: {mac}", err=True)
-        click.echo("Formato esperado: 00:11:22:33:44:55", err=True)
-        return
-    
-    inv.blacklist_device(normalized_mac)
-    click.echo(f"✅ MAC {normalized_mac} añadida a la lista negra")
+    # Mostrar otras configuraciones
+    click.echo("\n⚙️ Otras configuraciones:")
+    click.echo(f"LOG_LEVEL: {os.getenv('LOG_LEVEL', 'No configurado')}")
+    click.echo(f"SCAN_INTERVAL: {os.getenv('SCAN_INTERVAL', 'No configurado')}")
 
 @cli.command()
 @click.option('--token', prompt='Bot Token de Telegram', hide_input=True)
 def set_telegram_token(token):
     """Configura el Bot Token de Telegram"""
-    set_key('config/.env', 'TELEGRAM_BOT_TOKEN', token)
-    click.echo("✅ Token de Telegram actualizado")
-    click.echo("💡 Asegúrate de que config/.env está en .gitignore")
+    if not verify_env_file():
+        sys.exit(1)
+    
+    # Validación básica del token
+    if len(token) < 30 or ':' not in token:
+        click.echo("❌ El token parece inválido. Debe tener el formato '123456789:ABCdefGHIjkl...'", err=True)
+        if not click.confirm("¿Desea guardarlo de todos modos?"):
+            return
+    
+    set_key(str(ENV_PATH), 'TELEGRAM_BOT_TOKEN', token)
+    click.echo(f"✅ Token guardado en {ENV_PATH}")
+    
+    # Verificar que se guardó correctamente
+    load_dotenv(dotenv_path=ENV_PATH, override=True)
+    if os.getenv('TELEGRAM_BOT_TOKEN') == token:
+        click.echo("✓ Verificación: Token guardado correctamente")
+    else:
+        click.echo("❌ Error: El token no se guardó correctamente", err=True)
 
 @cli.command()
 @click.option('--chat', prompt='Chat ID de Telegram')
 def set_telegram_chat(chat):
     """Configura el Chat ID de Telegram"""
-    set_key('config/.env', 'TELEGRAM_CHAT_ID', chat)
-    click.echo("✅ Chat ID de Telegram actualizado")
-
-@cli.command()
-@click.option('--level', type=click.Choice(['debug', 'info', 'warning', 'error'], case_sensitive=False),
-              prompt='Nivel de log (debug/info/warning/error)')
-def set_log_level(level):
-    """Configura el nivel de logging"""
-    set_key('config/.env', 'LOG_LEVEL', level.lower())
-    click.echo(f"✅ Nivel de log configurado a {level.lower()}")
-
-@cli.command()
-@click.option('--message', prompt='Mensaje de alerta personalizado')
-def set_alert_message(message):
-    """Configura el mensaje de alerta personalizado"""
-    set_key('config/.env', 'ALERT_MESSAGE', message)
-    click.echo("✅ Mensaje de alerta actualizado")
-
-@cli.command()
-def list_devices():
-    """Lista todos los dispositivos conocidos"""
-    if not verify_config():
-        return
-    
-    from inventory import FileInventory
-    inv = FileInventory()
-    
-    devices = inv.get_all_devices()
-    if not devices:
-        click.echo("No hay dispositivos registrados")
-        return
-    
-    click.echo("\n📋 Dispositivos registrados:")
-    for device in devices:
-        status_icon = {
-            'authorized': '✅',
-            'blocked': '❌',
-            'unknown': '❓'
-        }.get(device['status'], ' ')
-        
-        click.echo(f"{status_icon} {device['mac']} ({device['ip']}) - {device.get('vendor', '')}")
-
-@cli.command()
-@click.argument('network')
-def network_devices(network):
-    """Lista dispositivos en una red específica"""
-    if not verify_config():
-        return
-    
-    try:
-        ipaddress.ip_network(network, strict=False)
-    except ValueError as e:
-        click.echo(f"❌ Red inválida: {str(e)}", err=True)
-        return
-    
-    from inventory import FileInventory
-    inv = FileInventory()
-    
-    devices = inv.get_network_devices(network)
-    if not devices:
-        click.echo(f"No hay dispositivos registrados en {network}")
-        return
-    
-    click.echo(f"\n📋 Dispositivos en {network}:")
-    for device in devices:
-        click.echo(f"- {device['mac']} ({device['ip']}) - {device.get('vendor', '')}")
-
-@cli.command()
-def cleanup():
-    """Normaliza y limpia todos los datos del inventario"""
-    if not verify_config():
-        return
-    
-    from inventory import FileInventory
-    inv = FileInventory()
-    
-    click.echo("🛠 Normalizando datos...")
-    inv.cleanup_data()
-    click.echo("✅ Datos normalizados y limpiados")
-
-@cli.command()
-@click.argument('ip_or_network')
-def validate(ip_or_network):
-    """Valida una dirección IP o rango de red"""
-    try:
-        if '/' in ip_or_network:
-            net = ipaddress.ip_network(ip_or_network, strict=False)
-            click.echo(f"✅ Red válida: {net}")
-            click.echo(f"  - Versión: IPv{net.version}")
-            click.echo(f"  - Máscara: {net.netmask}")
-            click.echo(f"  - Hosts: {net.num_addresses}")
-        else:
-            ip = ipaddress.ip_address(ip_or_network)
-            click.echo(f"✅ IP válida: {ip}")
-            click.echo(f"  - Versión: IPv{ip.version}")
-            click.echo(f"  - Público: {ip.is_global}")
-            click.echo(f"  - Privado: {ip.is_private}")
-    except ValueError as e:
-        click.echo(f"❌ Error: {str(e)}", err=True)
-
-if __name__ == "__main__":
-    # Verificar estructura básica
-    if not Path('config/.env').exists() and 'init' not in sys.argv:
-        click.echo("⚠️ Ejecuta primero 'python cli.py init' para inicializar", err=True)
+    if not verify_env_file():
         sys.exit(1)
     
+    set_key(str(ENV_PATH), 'TELEGRAM_CHAT_ID', chat)
+    click.echo(f"✅ Chat ID guardado en {ENV_PATH}")
+
+@cli.command()
+def verify():
+    """Verifica profundamente la configuración"""
+    if not verify_env_file():
+        sys.exit(1)
+    
+    # Mostrar contenido crudo del archivo
+    click.echo("\n📄 Contenido de .env:")
+    click.echo(ENV_PATH.read_text(encoding='utf-8'))
+    
+    # Verificar conexión con Telegram
+    load_dotenv(dotenv_path=ENV_PATH, override=True)
+    token = os.getenv('TELEGRAM_BOT_TOKEN')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+    
+    if token and chat_id:
+        click.echo("\n🔍 Probando conexión con Telegram...")
+        try:
+            import requests
+            response = requests.get(
+                f"https://api.telegram.org/bot{token}/getMe",
+                timeout=10
+            )
+            if response.status_code == 200:
+                click.echo("✅ Conexión exitosa!")
+                click.echo(f"Bot: @{response.json()['result']['username']}")
+            else:
+                click.echo(f"❌ Error de API: {response.text}")
+        except Exception as e:
+            click.echo(f"❌ Error de conexión: {str(e)}")
+    else:
+        click.echo("\n⚠️ Configuración incompleta para probar Telegram")
+
+if __name__ == "__main__":
     cli()
+    

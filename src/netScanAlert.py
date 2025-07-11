@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 import time
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
+from dotenv import load_dotenv
 from typing import List, Dict
-import ipaddress
-from inventory import FileInventory
-from scanner import NetworkScanner
-from notifier import TelegramNotifier
 
-# Configuración básica de logging
+# Configuración de logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -19,18 +17,37 @@ logging.basicConfig(
     ]
 )
 
+# Configuración de rutas
+BASE_DIR = Path(__file__).parent.parent
+ENV_PATH = BASE_DIR / "config" / ".env"
+
+# Cargar variables de entorno
+load_dotenv(dotenv_path=ENV_PATH)
+
 class NetScanAlert:
     def __init__(self):
         """Inicializa el sistema de monitoreo de red"""
+        # Cargar configuración desde .env con valores por defecto
+        self.scan_interval = float(os.getenv('SCAN_INTERVAL', '300'))
+        self.log_level = os.getenv('LOG_LEVEL', 'info').upper()
+        
+        # Configurar nivel de logging
+        logging.getLogger().setLevel(self.log_level)
+        
+        # Inicializar componentes
+        from inventory import FileInventory
+        from scanner import NetworkScanner
+        from notifier import TelegramNotifier
+        
         self.inventory = FileInventory()
         self.scanner = NetworkScanner(self.inventory)
         self.notifier = TelegramNotifier()
-        self.scan_interval = 300  # 5 minutos entre escaneos
-        self.last_scan_time = None
+        
+        logging.info(f"Iniciando NetScanAlert (Intervalo: {self.scan_interval}s, Log: {self.log_level})")
 
     def load_network_ranges(self) -> List[str]:
         """Carga y valida los rangos de red a monitorear"""
-        networks_file = Path('config/networks.txt')
+        networks_file = BASE_DIR / "config" / "networks.txt"
         
         if not networks_file.exists():
             logging.warning("Archivo networks.txt no encontrado, usando red por defecto")
@@ -43,7 +60,6 @@ class NetScanAlert:
             valid_networks = []
             for net in networks:
                 try:
-                    # Validar el formato de la red
                     network = ipaddress.ip_network(net, strict=False)
                     valid_networks.append(str(network))
                     logging.debug(f"Red válida cargada: {network}")
@@ -77,7 +93,6 @@ class NetScanAlert:
         for device in devices:
             try:
                 if not self.inventory.device_exists(device['mac']):
-                    # Validar la IP antes de procesar
                     if not self.inventory.validate_ip(device['ip']):
                         logging.warning(f"IP inválida detectada: {device['ip']}")
                         continue
@@ -101,18 +116,18 @@ class NetScanAlert:
     def run(self):
         """Ejecuta el monitoreo continuo"""
         logging.info("Iniciando NetScanAlert")
+        logging.info(f"Configuración cargada desde: {ENV_PATH}")
         logging.info(f"Intervalo de escaneo: {self.scan_interval} segundos")
         
         try:
             while True:
                 start_time = datetime.now()
-                self.last_scan_time = start_time.isoformat()
-                
                 logging.info("Iniciando ciclo de escaneo...")
+                
                 devices = self.scan_networks()
                 self.process_new_devices(devices)
                 
-                # Calcular tiempo de espera para el próximo escaneo
+                # Calcular tiempo de espera dinámico
                 elapsed = (datetime.now() - start_time).total_seconds()
                 sleep_time = max(0, self.scan_interval - elapsed)
                 
@@ -130,8 +145,9 @@ def main():
     try:
         # Verificar estructura básica
         required_dirs = ['config', 'data']
-        for dir_path in required_dirs:
-            if not Path(dir_path).exists():
+        for dir_name in required_dirs:
+            dir_path = BASE_DIR / dir_name
+            if not dir_path.exists():
                 print(f"Error: Directorio '{dir_path}' no encontrado")
                 print("Ejecute 'python cli.py init' primero")
                 return
@@ -144,4 +160,6 @@ def main():
         sys.exit(1)
 
 if __name__ == "__main__":
+    import ipaddress  # Importación local para el modo de prueba
+    import sys
     main()

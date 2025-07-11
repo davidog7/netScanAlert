@@ -16,7 +16,7 @@ logging.basicConfig(
 class TelegramNotifier:
     def __init__(self):
         """Inicializa el notificador con configuración desde variables de entorno"""
-        load_dotenv()
+        load_dotenv('../config/.env')  # Carga las variables de entorno desde el archivo .env
         
         # Configuración esencial
         self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')

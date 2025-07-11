@@ -5,7 +5,7 @@ import ipaddress
 from typing import List, Dict, Optional, Union
 
 class FileInventory:
-    def __init__(self, data_dir: str = 'data') -> None:
+    def __init__(self, data_dir: str = '../data') -> None:
         """
         Inicializa el sistema de inventario con manejo seguro de direcciones IP.
         
