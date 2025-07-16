@@ -3,7 +3,7 @@ NetScanAlert es un sistema de escaneo y monitoreo continuo de redes con el fin d
 ## 1.- Instalar dependencias:
 ```bash
     sudo apt update
-    sudo apt install git python3 python3-pip python3-venv arp-scan #(requiere permisos sudo)
+    sudo apt install git python3 python3-pip python3-venv arp-scan #(arp-scan requiere permisos sudo)
     # Crear el entorno virtual en tu home
     mkdir -p ~/venvs
     python3 -m venv ~/venvs/netScanAlert
@@ -16,15 +16,13 @@ NetScanAlert es un sistema de escaneo y monitoreo continuo de redes con el fin d
 ```
 ## 2.- Configurar:
 ```bash
-    # Añadir dispositivo a lista blanca (MAC o IP)
-    python cli.py whitelist 00:11:22:33:44:55
-    python cli.py whitelist 192.168.1.100
-    #Configurar Telegram (opcional) pero recomendado).Se recomienda mejor usar variables de entorno en entornos productivos:
+    # Inicializar la herramienta para crear directorios y archivos de trabajo
+    python cli.py init
+    # Añadir las redes a escanear en el archivo ./config/networks.txt
+    nano ./config/networks.txt
+    # Configurar Telegram, opcional pero recomendado. Se recomienda mejor usar variables de entorno en entornos productivos:
     python cli.py set-telegram-token
     python cli.py set-telegram-chat
-    # Configurar logging y mensajes
-    python cli.py set-log-level
-    python cli.py set-alert-message
     # Ver configuración actual
     python cli.py show-config
 ```
@@ -49,16 +47,16 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  blacklist         Añade una MAC a la lista negra
-  cleanup           Normaliza y limpia todos los datos del inventario
+  blacklist         Añade una MAC a la lista negra (no implementado)
+  cleanup           Normaliza y limpia todos los datos del inventario (no implementado, borrar directorio data)
   init              Inicializa la estructura del proyecto
-  list-devices      Lista todos los dispositivos conocidos
-  network-devices   Lista dispositivos en una red específica
-  set-alert-message Configura el mensaje de alerta personalizado
-  set-log-level     Configura el nivel de logging
+  list-devices      Lista todos los dispositivos conocidos (no implementado)
+  network-devices   Lista dispositivos en una red específica (no implementado)
+  set-alert-message Configura el mensaje de alerta personalizado (no implementado)
+  set-log-level     Configura el nivel de logging (no implementado)
   set-telegram-chat Configura el Chat ID de Telegram
   set-telegram-token Configura el Bot Token de Telegram
   show-config       Muestra la configuración actual
-  validate          Valida una dirección IP o rango de red
-  whitelist         Añade un dispositivo (MAC o IP) a la lista blanca
+  validate          Valida una dirección IP o rango de red (no implementado)
+  whitelist         Añade un dispositivo (MAC o IP) a la lista blanca (no implementado)
   ```
