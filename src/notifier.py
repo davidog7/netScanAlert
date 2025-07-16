@@ -2,8 +2,7 @@ import os
 import requests
 import time
 import logging
-from typing import Dict, Optional
-from ipaddress import ip_address
+from typing import Dict
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -16,17 +15,18 @@ logging.basicConfig(
 class TelegramNotifier:
     def __init__(self):
         """Inicializa el notificador con configuración desde variables de entorno"""
-        load_dotenv('../config/.env')  # Carga las variables de entorno desde el archivo .env
+        # Cargar variables de entorno
+        env_path = Path(__file__).parent.parent / "config" / ".env"
+        load_dotenv(dotenv_path=env_path)
         
         # Configuración esencial
         self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
         self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
         
-        # Configuración opcional con valores por defecto
+        # Configuración opcional
         self.timeout = int(os.getenv('TELEGRAM_TIMEOUT', '10'))
         self.max_retries = int(os.getenv('TELEGRAM_RETRIES', '3'))
         self.retry_delay = int(os.getenv('TELEGRAM_RETRY_DELAY', '2'))
-        self.log_level = os.getenv('LOG_LEVEL', 'info').lower()
         
         # Plantilla de mensaje configurable
         self.alert_template = os.getenv(
@@ -38,57 +38,25 @@ class TelegramNotifier:
             '▸ Hora: `{timestamp}`'
         )
 
-    def _log(self, message: str, level: str = 'info') -> None:
-        """Registro de eventos interno con niveles de log"""
-        if level == 'debug' and self.log_level not in ['debug']:
-            return
-        elif level == 'info' and self.log_level in ['warning', 'error']:
-            return
-        elif level == 'warning' and self.log_level == 'error':
-            return
-        
-        getattr(logging, level)(message)
-
-    def _sanitize_ip(self, ip_str: str) -> str:
-        """Normaliza y valida una dirección IP para mostrar"""
-        try:
-            return str(ip_address(ip_str))
-        except ValueError:
-            self._log(f"IP inválida detectada: {ip_str}", 'warning')
-            return ip_str  # Devuelve el original si no es IP válida
+    def _validate_config(self) -> bool:
+        """Valida que la configuración sea correcta"""
+        if not self.bot_token or not self.chat_id:
+            logging.error("Configuración incompleta. Se requieren TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID")
+            return False
+        return True
 
     def _format_message(self, device_info: Dict) -> str:
         """Formatea el mensaje de alerta usando la plantilla"""
-        safe_ip = self._sanitize_ip(device_info.get('ip', 'DESCONOCIDO'))
-        
-        return self.alert_template.format(
-            mac=device_info.get('mac', 'DESCONOCIDO'),
-            ip=safe_ip,
-            vendor=device_info.get('vendor', 'DESCONOCIDO'),
-            timestamp=time.strftime('%Y-%m-%d %H:%M:%S')
-        )
-
-    def test_connection(self) -> bool:
-        """Prueba la conexión con la API de Telegram"""
-        if not self.bot_token or not self.chat_id:
-            self._log("Configuración de Telegram incompleta", 'error')
-            return False
-
         try:
-            response = requests.get(
-                f"https://api.telegram.org/bot{self.bot_token}/getMe",
-                timeout=self.timeout
+            return self.alert_template.format(
+                mac=device_info.get('mac', 'DESCONOCIDO'),
+                ip=device_info.get('ip', 'DESCONOCIDO'),
+                vendor=device_info.get('vendor', 'DESCONOCIDO'),
+                timestamp=time.strftime('%Y-%m-%d %H:%M:%S')
             )
-            if response.status_code == 200:
-                self._log("Conexión con Telegram verificada", 'debug')
-                return True
-            
-            self._log(f"Error en la API de Telegram: {response.text}", 'warning')
-            return False
-            
-        except Exception as e:
-            self._log(f"Error probando conexión: {str(e)}", 'error')
-            return False
+        except KeyError as e:
+            logging.error(f"Falta clave en device_info: {str(e)}")
+            return "⚠️ Nuevo dispositivo detectado (formato incorrecto)"
 
     def send_alert(self, device_info: Dict) -> bool:
         """
@@ -96,19 +64,17 @@ class TelegramNotifier:
         
         Args:
             device_info: Diccionario con información del dispositivo
-                Debe contener: mac, ip, vendor
         
         Returns:
             bool: True si la notificación se envió correctamente
         """
-        if not self.bot_token or not self.chat_id:
-            self._log("No se puede enviar alerta - Configuración de Telegram incompleta", 'error')
+        if not self._validate_config():
             return False
 
         message = self._format_message(device_info)
         url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
         
-        for attempt in range(self.max_retries):
+        for attempt in range(1, self.max_retries + 1):
             try:
                 response = requests.post(
                     url,
@@ -122,72 +88,66 @@ class TelegramNotifier:
                 )
 
                 if response.status_code == 200:
-                    self._log(f"Alerta enviada: {device_info.get('mac')}", 'debug')
+                    logging.info(f"Notificación enviada: {device_info.get('mac')}")
                     return True
                 
-                # Manejo de errores específicos de Telegram
                 error_msg = response.json().get('description', 'Error desconocido')
-                self._log(f"Error de Telegram (intento {attempt + 1}): {error_msg}", 'warning')
-                
-                # Backoff exponencial para reintentos
-                time.sleep(self.retry_delay * (attempt + 1))
+                logging.error(f"Intento {attempt}: {error_msg}")
                 
             except requests.exceptions.RequestException as e:
-                self._log(f"Error de conexión (intento {attempt + 1}): {str(e)}", 'warning')
-                time.sleep(self.retry_delay * (attempt + 1))
-                continue
-                
+                logging.error(f"Intento {attempt}: Error de conexión - {str(e)}")
             except Exception as e:
-                self._log(f"Error inesperado (intento {attempt + 1}): {str(e)}", 'error')
+                logging.error(f"Intento {attempt}: Error inesperado - {str(e)}")
                 break
+                
+            time.sleep(self.retry_delay * attempt)
 
-        self._log(f"Fallo al enviar alerta después de {self.max_retries} intentos", 'error')
+        logging.error(f"Fallo después de {self.max_retries} intentos")
         return False
 
-    def send_custom_message(self, text: str) -> bool:
-        """Envía un mensaje personalizado a Telegram"""
-        if not self.bot_token or not self.chat_id:
-            self._log("Configuración incompleta para enviar mensaje", 'error')
+    def test_connection(self) -> bool:
+        """Prueba la conexión con la API de Telegram"""
+        if not self._validate_config():
             return False
 
         try:
-            response = requests.post(
-                f"https://api.telegram.org/bot{self.bot_token}/sendMessage",
-                json={
-                    'chat_id': self.chat_id,
-                    'text': text,
-                    'parse_mode': 'Markdown'
-                },
+            response = requests.get(
+                f"https://api.telegram.org/bot{self.bot_token}/getMe",
                 timeout=self.timeout
             )
-            return response.status_code == 200
+            
+            if response.status_code == 200:
+                bot_info = response.json()
+                logging.info(f"Conexión exitosa con @{bot_info['result']['username']}")
+                return True
+                
+            error_msg = response.json().get('description', 'Error desconocido')
+            logging.error(f"Error de API: {error_msg}")
+            return False
+            
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error de conexión: {str(e)}")
+            return False
         except Exception as e:
-            self._log(f"Error enviando mensaje personalizado: {str(e)}", 'error')
+            logging.error(f"Error inesperado: {str(e)}")
             return False
 
 
 if __name__ == "__main__":
     # Prueba de funcionamiento
+    print("=== Prueba de TelegramNotifier ===")
     notifier = TelegramNotifier()
     
-    print("=== Prueba de Notificador Telegram ===")
-    print(f"Configuración cargada: {'✅' if notifier.bot_token and notifier.chat_id else '❌'}")
-    
     if notifier.test_connection():
-        print("✅ Conexión con Telegram exitosa")
-        
-        # Prueba de envío de alerta
+        print("\nProbando envío de mensaje...")
         test_device = {
             'mac': '00:11:22:33:44:55',
             'ip': '192.168.1.100',
-            'vendor': 'Fabricante de Prueba'
+            'vendor': 'Fabricante de prueba'
         }
-        
-        print("\nEnviando alerta de prueba...")
         if notifier.send_alert(test_device):
-            print("✅ Alerta de prueba enviada correctamente")
+            print("✅ Prueba exitosa! Revisa tu Telegram")
         else:
-            print("❌ Fallo al enviar alerta de prueba")
+            print("❌ Fallo al enviar. Revisa los logs")
     else:
-        print("❌ No se pudo conectar con Telegram")
-        print("Verifica tu configuración en config/.env")
+        print("❌ Conexión fallida. Verifica tu configuración")

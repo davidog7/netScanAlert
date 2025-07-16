@@ -453,3 +453,62 @@ Use "arp-scan --help" for detailed information on the available options.
 2025-07-16 12:33:24,894 - WARNING - Error de Telegram (intento 1): Bad Request: chat not found
 2025-07-16 12:33:27,114 - WARNING - Error de Telegram (intento 2): Bad Request: chat not found
 2025-07-16 12:33:29,217 - INFO - Deteniendo NetScanAlert...
+2025-07-16 13:13:48,368 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 13:13:48,368 - INFO - Iniciando NetScanAlert
+2025-07-16 13:13:48,368 - INFO - Configuración cargada desde: /media/sf_NetScanAlert/netScanAlert/config/.env
+2025-07-16 13:13:48,369 - INFO - Intervalo de escaneo: 10.0 segundos
+2025-07-16 13:13:48,369 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 13:13:48,371 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:13:48,371 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:13:50,427 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:13:50,427 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:13:50,458 - ERROR - Error en arp-scan: pcap_activate: eth0: No such device exists
+(No such device exists)
+
+2025-07-16 13:13:50,459 - INFO - Ciclo completado. Esperando 7.9 segundos...
+2025-07-16 13:13:58,377 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 13:13:58,380 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:13:58,380 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:14:00,318 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:14:00,319 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:14:00,366 - ERROR - Error en arp-scan: pcap_activate: eth0: No such device exists
+(No such device exists)
+
+2025-07-16 13:14:00,367 - INFO - Ciclo completado. Esperando 8.0 segundos...
+2025-07-16 13:14:08,380 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 13:14:08,385 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:14:08,386 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:14:10,400 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:14:10,401 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:14:10,438 - ERROR - Error en arp-scan: pcap_activate: eth0: No such device exists
+(No such device exists)
+
+2025-07-16 13:14:10,439 - INFO - Ciclo completado. Esperando 7.9 segundos...
+2025-07-16 13:14:13,860 - INFO - Deteniendo NetScanAlert...
+2025-07-16 13:14:42,350 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 13:14:42,351 - INFO - Iniciando NetScanAlert
+2025-07-16 13:14:42,351 - INFO - Configuración cargada desde: /media/sf_NetScanAlert/netScanAlert/config/.env
+2025-07-16 13:14:42,352 - INFO - Intervalo de escaneo: 10.0 segundos
+2025-07-16 13:14:42,353 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 13:14:42,355 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:14:42,355 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:14:44,306 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:14:44,306 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:14:44,340 - ERROR - Error en arp-scan: pcap_activate: eth0: No such device exists
+(No such device exists)
+
+2025-07-16 13:14:44,351 - INFO - Nuevo dispositivo: 52:54:00:12:35:00 (10.0.2.1)
+2025-07-16 13:14:44,372 - INFO - Nuevo dispositivo: 08:00:27:93:75:5B (10.0.2.3)
+2025-07-16 13:14:44,595 - INFO - Notificación enviada: 52:54:00:12:35:00
+2025-07-16 13:14:44,828 - INFO - Notificación enviada: 08:00:27:93:75:5B
+2025-07-16 13:14:44,828 - INFO - Ciclo completado. Esperando 7.5 segundos...
+2025-07-16 13:14:52,354 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 13:14:52,358 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:14:52,358 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 13:14:54,351 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:14:54,352 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 13:14:54,395 - ERROR - Error en arp-scan: pcap_activate: eth0: No such device exists
+(No such device exists)
+
+2025-07-16 13:14:54,402 - INFO - Ciclo completado. Esperando 8.0 segundos...
+2025-07-16 13:14:55,946 - INFO - Deteniendo NetScanAlert...
