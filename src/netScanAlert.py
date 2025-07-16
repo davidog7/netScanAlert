@@ -2,6 +2,8 @@
 import time
 import logging
 import os
+import ipaddress
+import sys
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -17,7 +19,7 @@ logging.basicConfig(
     ]
 )
 
-# Configuración de rutas
+# Configuración de rutas - subimos un nivel para llegar a la raíz del proyecto
 BASE_DIR = Path(__file__).parent.parent
 ENV_PATH = BASE_DIR / "config" / ".env"
 
@@ -45,43 +47,65 @@ class NetScanAlert:
         
         logging.info(f"Iniciando NetScanAlert (Intervalo: {self.scan_interval}s, Log: {self.log_level})")
 
-    def load_network_ranges(self) -> List[str]:
-        """Carga y valida los rangos de red a monitorear"""
+    def load_network_config(self) -> List[Dict]:
+        """Carga y valida la configuración de redes e interfaces a monitorear"""
         networks_file = BASE_DIR / "config" / "networks.txt"
         
         if not networks_file.exists():
-            logging.warning("Archivo networks.txt no encontrado, usando red por defecto")
-            return ['192.168.1.0/24']
+            logging.warning("Archivo networks.txt no encontrado, usando configuración por defecto")
+            return [{'interface': 'eth0', 'network': '192.168.1.0/24'}]
         
         try:
             with open(networks_file, 'r') as f:
-                networks = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+                configs = []
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    
+                    # Formato: interfaz:red
+                    if ':' in line:
+                        interface, network = line.split(':', 1)
+                        configs.append({
+                            'interface': interface.strip(),
+                            'network': network.strip()
+                        })
+                    else:
+                        # Solo red, usamos interfaz por defecto
+                        configs.append({
+                            'interface': 'eth0',
+                            'network': line.strip()
+                        })
             
-            valid_networks = []
-            for net in networks:
+            # Validar las configuraciones
+            valid_configs = []
+            for config in configs:
                 try:
-                    network = ipaddress.ip_network(net, strict=False)
-                    valid_networks.append(str(network))
-                    logging.debug(f"Red válida cargada: {network}")
+                    ipaddress.ip_network(config['network'], strict=False)
+                    valid_configs.append(config)
+                    logging.debug(f"Configuración válida cargada: {config}")
                 except ValueError as e:
-                    logging.warning(f"Red inválida en networks.txt: {net} - {str(e)}")
+                    logging.warning(f"Red inválida en networks.txt: {config['network']} - {str(e)}")
             
-            return valid_networks if valid_networks else ['192.168.1.0/24']
+            return valid_configs if valid_configs else [{'interface': 'eth0', 'network': '192.168.1.0/24'}]
         except Exception as e:
             logging.error(f"Error leyendo networks.txt: {str(e)}")
-            return ['192.168.1.0/24']
+            return [{'interface': 'eth0', 'network': '192.168.1.0/24'}]
 
     def scan_networks(self) -> List[Dict]:
         """Escanea todas las redes configuradas"""
-        networks = self.load_network_ranges()
+        network_configs = self.load_network_config()
         devices = []
         
-        for network in networks:
+        for config in network_configs:
             try:
-                logging.info(f"Escaneando red: {network}")
-                devices.extend(self.scanner.scan_single_network(network))
+                logging.info(f"Escaneando red: {config['network']} en interfaz {config['interface']}")
+                devices.extend(self.scanner.scan_network(
+                    network=config['network'],
+                    interface=config['interface']
+                ))
             except Exception as e:
-                logging.error(f"Error escaneando {network}: {str(e)}")
+                logging.error(f"Error escaneando {config['network']}: {str(e)}")
                 continue
         
         return devices
@@ -145,21 +169,35 @@ def main():
     try:
         # Verificar estructura básica
         required_dirs = ['config', 'data']
+        missing_dirs = []
+        
         for dir_name in required_dirs:
             dir_path = BASE_DIR / dir_name
             if not dir_path.exists():
-                print(f"Error: Directorio '{dir_path}' no encontrado")
-                print("Ejecute 'python cli.py init' primero")
-                return
+                missing_dirs.append(str(dir_path))
+        
+        if missing_dirs:
+            print("\n".join([
+                "❌ Error: Directorios requeridos no encontrados:",
+                *missing_dirs,
+                "",
+                "Ejecute primero: python cli.py init"
+            ]))
+            return
+        
+        # Verificar archivo .env
+        if not ENV_PATH.exists():
+            print(f"\n❌ Archivo de configuración no encontrado: {ENV_PATH}")
+            print("Ejecute primero: python cli.py init")
+            return
         
         # Iniciar aplicación
         app = NetScanAlert()
         app.run()
+        
     except Exception as e:
         logging.critical(f"Error inicializando la aplicación: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
-    import ipaddress  # Importación local para el modo de prueba
-    import sys
     main()

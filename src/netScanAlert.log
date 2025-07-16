@@ -319,3 +319,137 @@
 2025-07-10 14:03:01,897 - INFO - Escaneando red: 192.168.53.0/24
 2025-07-10 14:03:01,901 - INFO - Ciclo completado. Esperando 10.0 segundos...
 2025-07-10 14:03:05,672 - INFO - Deteniendo NetScanAlert...
+2025-07-16 11:40:23,543 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 11:40:23,544 - CRITICAL - Error inicializando la aplicación: 'NetScanAlert' object has no attribute 'run'
+2025-07-16 11:42:31,870 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 11:42:31,870 - CRITICAL - Error inicializando la aplicación: 'NetScanAlert' object has no attribute 'run'
+2025-07-16 12:15:03,246 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 12:15:03,247 - INFO - Iniciando NetScanAlert
+2025-07-16 12:15:03,247 - INFO - Configuración cargada desde: /media/sf_NetScanAlert/netScanAlert/config/.env
+2025-07-16 12:15:03,247 - INFO - Intervalo de escaneo: 10.0 segundos
+2025-07-16 12:15:03,248 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:15:03,249 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:15:03,250 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute '_validate_network'
+2025-07-16 12:15:03,250 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:15:03,256 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute '_validate_network'
+2025-07-16 12:15:03,256 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:15:13,249 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:15:13,255 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:15:13,256 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute '_validate_network'
+2025-07-16 12:15:13,263 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:15:13,263 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute '_validate_network'
+2025-07-16 12:15:13,264 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:15:23,249 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:15:23,252 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:15:23,252 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute '_validate_network'
+2025-07-16 12:15:23,252 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:15:23,252 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute '_validate_network'
+2025-07-16 12:15:23,252 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:15:33,251 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:15:33,253 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:15:33,254 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute '_validate_network'
+2025-07-16 12:15:33,254 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:15:33,254 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute '_validate_network'
+2025-07-16 12:15:33,254 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:15:38,589 - INFO - Deteniendo NetScanAlert...
+2025-07-16 12:19:12,123 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 12:19:12,123 - INFO - Iniciando NetScanAlert
+2025-07-16 12:19:12,124 - INFO - Configuración cargada desde: /media/sf_NetScanAlert/netScanAlert/config/.env
+2025-07-16 12:19:12,124 - INFO - Intervalo de escaneo: 10.0 segundos
+2025-07-16 12:19:12,124 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:19:12,126 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:19:12,127 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:19:12,147 - ERROR - Error en arp-scan: arp-scan: unrecognized option '--arpscan-timeout=5'
+Usage: arp-scan [options] [hosts...]
+Use "arp-scan --help" for detailed information on the available options.
+
+2025-07-16 12:19:12,147 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:19:12,148 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:19:12,165 - ERROR - Error en arp-scan: arp-scan: unrecognized option '--arpscan-timeout=5'
+Usage: arp-scan [options] [hosts...]
+Use "arp-scan --help" for detailed information on the available options.
+
+2025-07-16 12:19:12,166 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:19:22,132 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:19:22,139 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:19:22,139 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:19:22,168 - ERROR - Error en arp-scan: arp-scan: unrecognized option '--arpscan-timeout=5'
+Usage: arp-scan [options] [hosts...]
+Use "arp-scan --help" for detailed information on the available options.
+
+2025-07-16 12:19:22,169 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:19:22,169 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:19:22,184 - ERROR - Error en arp-scan: arp-scan: unrecognized option '--arpscan-timeout=5'
+Usage: arp-scan [options] [hosts...]
+Use "arp-scan --help" for detailed information on the available options.
+
+2025-07-16 12:19:22,184 - INFO - Ciclo completado. Esperando 9.9 segundos...
+2025-07-16 12:19:24,517 - INFO - Deteniendo NetScanAlert...
+2025-07-16 12:22:26,050 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 12:22:26,050 - INFO - Iniciando NetScanAlert
+2025-07-16 12:22:26,051 - INFO - Configuración cargada desde: /media/sf_NetScanAlert/netScanAlert/config/.env
+2025-07-16 12:22:26,051 - INFO - Intervalo de escaneo: 10.0 segundos
+2025-07-16 12:22:26,051 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:22:26,053 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:22:26,054 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:22:26,054 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:22:26,054 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:22:26,054 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:22:36,053 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:22:36,057 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:22:36,057 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:22:36,058 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:22:36,058 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:22:36,058 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:22:38,114 - INFO - Deteniendo NetScanAlert...
+2025-07-16 12:25:07,662 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 12:25:07,662 - INFO - Iniciando NetScanAlert
+2025-07-16 12:25:07,663 - INFO - Configuración cargada desde: /media/sf_NetScanAlert/netScanAlert/config/.env
+2025-07-16 12:25:07,663 - INFO - Intervalo de escaneo: 10.0 segundos
+2025-07-16 12:25:07,663 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:25:07,665 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:25:07,665 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:25:07,665 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:25:07,666 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:25:07,666 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:25:16,708 - INFO - Deteniendo NetScanAlert...
+2025-07-16 12:28:29,507 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 12:28:29,508 - INFO - Iniciando NetScanAlert
+2025-07-16 12:28:29,508 - INFO - Configuración cargada desde: /media/sf_NetScanAlert/netScanAlert/config/.env
+2025-07-16 12:28:29,508 - INFO - Intervalo de escaneo: 10.0 segundos
+2025-07-16 12:28:29,509 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:28:29,510 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:28:29,511 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:28:29,511 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:28:29,511 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:28:29,511 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:28:39,509 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:28:39,514 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:28:39,514 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:28:39,514 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:28:39,515 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:28:39,515 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:28:49,512 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:28:49,518 - INFO - Escaneando red: 10.0.2.15/24 en interfaz enp0s3
+2025-07-16 12:28:49,518 - ERROR - Error escaneando 10.0.2.15/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:28:49,519 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:28:49,520 - ERROR - Error escaneando 192.168.4.0/24: 'NetworkScanner' object has no attribute 'scan_single_network'
+2025-07-16 12:28:49,520 - INFO - Ciclo completado. Esperando 10.0 segundos...
+2025-07-16 12:28:52,730 - INFO - Deteniendo NetScanAlert...
+2025-07-16 12:33:22,546 - INFO - Iniciando NetScanAlert (Intervalo: 10.0s, Log: INFO)
+2025-07-16 12:33:22,546 - INFO - Iniciando NetScanAlert
+2025-07-16 12:33:22,547 - INFO - Configuración cargada desde: /media/sf_NetScanAlert/netScanAlert/config/.env
+2025-07-16 12:33:22,547 - INFO - Intervalo de escaneo: 10.0 segundos
+2025-07-16 12:33:22,547 - INFO - Iniciando ciclo de escaneo...
+2025-07-16 12:33:22,551 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 12:33:22,552 - INFO - Escaneando red: 10.0.2.0/24 en interfaz enp0s3
+2025-07-16 12:33:24,568 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:33:24,569 - INFO - Escaneando red: 192.168.4.0/24 en interfaz eth0
+2025-07-16 12:33:24,640 - ERROR - Error en arp-scan: pcap_activate: eth0: No such device exists
+(No such device exists)
+
+2025-07-16 12:33:24,658 - INFO - Nuevo dispositivo: 52:54:00:12:35:00 (10.0.2.1)
+2025-07-16 12:33:24,674 - INFO - Nuevo dispositivo: 08:00:27:93:75:5B (10.0.2.3)
+2025-07-16 12:33:24,894 - WARNING - Error de Telegram (intento 1): Bad Request: chat not found
+2025-07-16 12:33:27,114 - WARNING - Error de Telegram (intento 2): Bad Request: chat not found
+2025-07-16 12:33:29,217 - INFO - Deteniendo NetScanAlert...
