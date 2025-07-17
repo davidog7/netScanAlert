@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
 import subprocess
 import re
 import ipaddress
 import logging
-from typing import List, Dict, Optional
+import netifaces
+import socket
+from typing import List, Dict
 from pathlib import Path
 from inventory import FileInventory
 
@@ -14,117 +17,177 @@ logging.basicConfig(
 
 class NetworkScanner:
     def __init__(self, inventory: FileInventory):
-        """
-        Inicializa el escáner de red con referencia al inventario.
-        
-        Args:
-            inventory: Instancia de FileInventory para gestión de dispositivos
-        """
+        """Inicializa el escáner de red"""
         self.inventory = inventory
-        self.arp_timeout = 500  # milisegundos para timeout de arp-scan
-        self.scan_batch_size = 64  # Número de IPs por lote de escaneo
-
-    def _validate_network(self, network_str: str) -> bool:
-        """
-        Valida que una cadena sea una red válida.
+        self.arp_timeout = 2000
+        self.nmap_timeout = 5000
+        self.local_networks = self._get_local_networks()
         
-        Args:
-            network_str: Cadena a validar como red
-            
-        Returns:
-            bool: True si es una red válida
-        """
+    def _get_local_networks(self) -> List[str]:
+        """Obtiene redes locales de interfaces activas"""
+        local_nets = []
+        for interface in netifaces.interfaces():
+            try:
+                if interface == 'lo' or not netifaces.AF_INET in netifaces.ifaddresses(interface):
+                    continue
+                    
+                for addr in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
+                    if 'addr' in addr and 'netmask' in addr:
+                        network = ipaddress.ip_network(
+                            f"{addr['addr']}/{addr['netmask']}", 
+                            strict=False
+                        )
+                        local_nets.append(str(network))
+            except Exception as e:
+                logging.debug(f"Error obteniendo red para {interface}: {str(e)}")
+        return local_nets
+
+    def _is_local_network(self, network: str) -> bool:
+        """Determina si una red es local"""
         try:
-            ipaddress.ip_network(network_str, strict=False)
-            return True
-        except ValueError:
+            target_net = ipaddress.ip_network(network, strict=False)
+            for local_net in self.local_networks:
+                if target_net.subnet_of(ipaddress.ip_network(local_net)):
+                    return True
+            return False
+        except ValueError as e:
+            logging.error(f"Error validando red {network}: {str(e)}")
             return False
 
-    def _parse_arp_output(self, output: str) -> List[Dict]:
-        """
-        Procesa la salida de arp-scan y devuelve dispositivos encontrados.
-        
-        Args:
-            output: Salida de texto de arp-scan
+    def _scan_local_with_arp(self, network: str, interface: str) -> List[Dict]:
+        """Escaneo ARP mejorado"""
+        try:
+            cmd = [
+                'sudo', 'arp-scan',
+                '-I', interface,
+                '--timeout=1000',  # 1 segundo
+                '--retry=2',
+                network
+            ]
             
-        Returns:
-            List[Dict]: Lista de dispositivos encontrados
-        """
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=5  # Timeout total de 5 segundos
+            )
+            
+            if result.returncode == 0:
+                return self._parse_arp_output(result.stdout)
+            
+            logging.error(f"ARP-scan falló. Código: {result.returncode}")
+            return []
+        except subprocess.TimeoutExpired:
+            logging.warning("ARP-scan timeout, intentando con método alternativo")
+            return self._scan_local_alternative(network, interface)
+        except Exception as e:
+            logging.error(f"Error en ARP-scan: {str(e)}")
+            return []
+
+    def _scan_local_alternative(self, network: str, interface: str) -> List[Dict]:
+        """Método alternativo para escaneo local"""
+        try:
+            cmd = ['sudo', 'arp', '-a', '-i', interface]
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            return self._parse_arp_output_alternative(result.stdout)
+        except Exception as e:
+            logging.error(f"Error en escaneo alternativo: {str(e)}")
+            return []
+
+    def _parse_arp_output(self, output: str) -> List[Dict]:
+        """Procesa la salida de arp-scan"""
         devices = []
-        arp_pattern = re.compile(
-            r'^\s*((?:\d{1,3}\.){3}\d{1,3})\s+'
-            r'((?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2})\s+'
-            r'(.+?)\s*$',
-            re.MULTILINE
-        )
+        pattern = re.compile(r'^\s*((?:\d{1,3}\.){3}\d{1,3})\s+((?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2})\s+(.+?)\s*$', re.MULTILINE)
         
-        for match in arp_pattern.finditer(output):
-            ip_str, mac, vendor = match.groups()
+        for match in pattern.finditer(output):
+            ip, mac, vendor = match.groups()
             devices.append({
-                'ip': ip_str,
-                'mac': mac.upper().replace('-', ':'),  # Normaliza MAC
+                'ip': ip,
+                'mac': mac.upper().replace('-', ':'),
                 'vendor': vendor.strip()
             })
-                
         return devices
 
-    def scan_network(self, network: str, interface: str = 'eth0') -> List[Dict]:
-        """
-        Escanea una única red y devuelve dispositivos encontrados.
+    def _parse_arp_output_alternative(self, output: str) -> List[Dict]:
+        """Procesa la salida alternativa de arp"""
+        devices = []
+        pattern = re.compile(r'^\S+\s+\(([\d\.]+)\)\s+at\s+([0-9A-Fa-f:]+)\s+\[ether\]\s+on\s+\S+$')
         
-        Args:
-            network: Red en formato CIDR a escanear
-            interface: Interfaz de red a usar (por defecto 'eth0')
-            
-        Returns:
-            List[Dict]: Dispositivos encontrados con sus datos
-        """
-        if not self._validate_network(network):
-            logging.warning(f"Red inválida omitida: {network}")
-            return []
-            
-        logging.info(f"Escaneando red: {network} en interfaz {interface}")
-        
+        for line in output.splitlines():
+            match = pattern.match(line)
+            if match:
+                ip, mac = match.groups()
+                devices.append({
+                    'ip': ip,
+                    'mac': mac.upper(),
+                    'vendor': 'Desconocido'
+                })
+        return devices
+
+    def _scan_remote_with_nmap(self, network: str) -> List[Dict]:
+        """Escaneo remoto que devuelve dispositivos válidos"""
         try:
+            cmd = [
+                'sudo', 'nmap',
+                '-sn',
+                '-PE',
+                '-PS21,22,80,443',
+                '-n',
+                '--max-retries=1',
+                '--host-timeout=2s',
+                network
+            ]
+            
             result = subprocess.run(
-                ['sudo', 'arp-scan', '-I', interface, f'--timeout={self.arp_timeout}', network],
+                cmd,
                 capture_output=True,
                 text=True,
                 timeout=30
             )
             
-            if result.returncode != 0:
-                logging.error(f"Error en arp-scan: {result.stderr}")
-                return []
+            if result.returncode == 0:
+                devices = self._parse_nmap_output(result.stdout)
+                # Filtrar IPs inválidas
+                return [d for d in devices if self.inventory.validate_ip(d['ip'])]
                 
-            return self._parse_arp_output(result.stdout)
-            
-        except subprocess.TimeoutExpired:
-            logging.warning(f"Timeout al escanear red {network}")
+            logging.error(f"Nmap falló. Código: {result.returncode}")
             return []
         except Exception as e:
-            logging.error(f"Error ejecutando arp-scan: {str(e)}")
+            logging.error(f"Error en Nmap: {str(e)}")
             return []
-
-
-if __name__ == "__main__":
-    # Prueba de funcionamiento
-    print("=== Prueba de NetworkScanner ===")
     
-    # Configuración de prueba
-    test_inventory = FileInventory()
-    scanner = NetworkScanner(test_inventory)
+    def _parse_nmap_output(self, output: str) -> List[Dict]:
+        """Procesa la salida de nmap con IP única"""
+        devices = []
+        ip_pattern = re.compile(r'Nmap scan report for ([\d\.]+)$')
+        seen_ips = set()
+        
+        for line in output.splitlines():
+            if ip_match := ip_pattern.match(line):
+                ip = ip_match.group(1)
+                if ip not in seen_ips:
+                    seen_ips.add(ip)
+                    devices.append({
+                        'ip': ip,
+                        'mac': '00:00:00:00:00:00',
+                        'vendor': 'Desconocido'
+                    })
+        return devices
     
-    # Red de prueba
-    test_network = "10.0.2.0/24"
-    test_interface = "enp0s3"
-    
-    print(f"\nEscaneando red de prueba: {test_network} en {test_interface}")
-    devices = scanner.scan_network(test_network, test_interface)
-    
-    if devices:
-        print("\nDispositivos encontrados:")
-        for i, device in enumerate(devices, 1):
-            print(f"{i}. MAC: {device['mac']} | IP: {device['ip']} | Fabricante: {device['vendor']}")
-    else:
-        print("No se encontraron dispositivos o hubo un error en el escaneo")
+    def scan_network(self, network: str, interface: str = 'eth0') -> List[Dict]:
+        """Escanea una red con el método apropiado"""
+        try:
+            if self._is_local_network(network):
+                logging.info(f"[LOCAL] Escaneando {network} en {interface}")
+                return self._scan_local_with_arp(network, interface)
+            else:
+                logging.info(f"[REMOTA] Escaneando {network}")
+                return self._scan_remote_with_nmap(network)
+        except Exception as e:
+            logging.error(f"Error escaneando {network}: {str(e)}")
+            return []

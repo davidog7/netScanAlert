@@ -59,52 +59,55 @@ class TelegramNotifier:
             return "⚠️ Nuevo dispositivo detectado (formato incorrecto)"
 
     def send_alert(self, device_info: Dict) -> bool:
-        """
-        Envía una notificación a Telegram sobre un nuevo dispositivo
-        
-        Args:
-            device_info: Diccionario con información del dispositivo
-        
-        Returns:
-            bool: True si la notificación se envió correctamente
-        """
+        """Envía notificación a Telegram con mejor manejo de errores"""
         if not self._validate_config():
+            logging.error("Configuración de Telegram incompleta")
             return False
 
-        message = self._format_message(device_info)
-        url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
-        
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                response = requests.post(
-                    url,
-                    json={
-                        'chat_id': self.chat_id,
-                        'text': message,
-                        'parse_mode': 'Markdown',
-                        'disable_web_page_preview': True
-                    },
-                    timeout=self.timeout
-                )
+        try:
+            message = self._format_message(device_info)
+            if not message:
+                logging.error("No se pudo formatear el mensaje")
+                return False
 
-                if response.status_code == 200:
+            url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
+            payload = {
+                'chat_id': self.chat_id,
+                'text': message,
+                'parse_mode': 'Markdown',
+                'disable_web_page_preview': True
+            }
+
+            for attempt in range(1, self.max_retries + 1):
+                try:
+                    response = requests.post(
+                        url,
+                        json=payload,
+                        timeout=self.timeout
+                    )
+                    
+                    response.raise_for_status()  # Lanza excepción para códigos 4XX/5XX
+                    
                     logging.info(f"Notificación enviada: {device_info.get('mac')}")
                     return True
-                
-                error_msg = response.json().get('description', 'Error desconocido')
-                logging.error(f"Intento {attempt}: {error_msg}")
-                
-            except requests.exceptions.RequestException as e:
-                logging.error(f"Intento {attempt}: Error de conexión - {str(e)}")
-            except Exception as e:
-                logging.error(f"Intento {attempt}: Error inesperado - {str(e)}")
-                break
-                
-            time.sleep(self.retry_delay * attempt)
-
-        logging.error(f"Fallo después de {self.max_retries} intentos")
-        return False
-
+                    
+                except requests.exceptions.RequestException as e:
+                    error_msg = f"Intento {attempt}: Error al enviar - "
+                    if hasattr(e, 'response') and e.response:
+                        error_msg += f"HTTP {e.response.status_code}: {e.response.text}"
+                    else:
+                        error_msg += str(e)
+                    logging.error(error_msg)
+                    
+                    if attempt < self.max_retries:
+                        time.sleep(self.retry_delay * attempt)
+                        
+            logging.error(f"Fallo después de {self.max_retries} intentos")
+            return False
+            
+        except Exception as e:
+            logging.error(f"Error inesperado al enviar alerta: {str(e)}")
+            return False  
     def test_connection(self) -> bool:
         """Prueba la conexión con la API de Telegram"""
         if not self._validate_config():

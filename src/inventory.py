@@ -1,8 +1,10 @@
 import csv
+import re
+import logging
 from pathlib import Path
 from datetime import datetime
 import ipaddress
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Optional
 
 class FileInventory:
     def __init__(self, data_dir: str = '../data') -> None:
@@ -15,12 +17,11 @@ class FileInventory:
         self.data_dir = Path(data_dir)
         self._initialize_files()
 
-    def _initialize_files(self) -> None:
-        """Crea la estructura de archivos necesaria si no existe"""
+    def _initialize_files(self):
+        """Crea la estructura de archivos necesaria"""
         self.data_dir.mkdir(exist_ok=True)
-        
-        # Archivo CSV principal de dispositivos
         self.devices_file = self.data_dir / 'devices.csv'
+        
         if not self.devices_file.exists():
             with open(self.devices_file, 'w', newline='') as f:
                 writer = csv.writer(f)
@@ -80,51 +81,64 @@ class FileInventory:
             return False
 
     def add_device(self, mac: str, ip: str, vendor: str, 
-                  os_info: str = 'unknown', name: str = '') -> None:
-        """
-        Añade un nuevo dispositivo al inventario con validación de IP.
-        
-        Args:
-            mac: Dirección MAC del dispositivo
-            ip: Dirección IP del dispositivo
-            vendor: Fabricante del dispositivo
-            os_info: Sistema operativo detectado (opcional)
-            name: Nombre descriptivo (opcional)
+                os_info: str = 'unknown', name: str = '') -> None:
+        """Añade un dispositivo al inventario con manejo de MAC 00:00:00:00:00:00"""
+        try:
+            # Para dispositivos remotos sin MAC, usamos IP como identificador único
+            device_id = ip if mac == '00:00:00:00:00:00' else mac
             
-        Raises:
-            ValueError: Si la IP no es válida
-        """
-        if not self.validate_ip(ip):
-            raise ValueError(f"Dirección IP inválida: {ip}")
-        
-        status = self._determine_status(mac, ip)
-        now = datetime.now().isoformat()
-        
-        with open(self.devices_file, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                mac, ip, name, os_info, vendor,
-                status, now, now
-            ])
-        
-        self._log_connection(mac, ip, 'connected')
+            # Validar IP
+            if not self.validate_ip(ip):
+                logging.warning(f"IP inválida: {ip}")
+                return
+                
+            status = self._determine_status(mac, ip)
+            now = datetime.now().isoformat()
+            
+            # Bloqueo para escritura segura
+            with open(self.devices_file, 'a', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    mac, ip, name, os_info, vendor,
+                    status, now, now
+                ])
+                
+            logging.debug(f"Dispositivo añadido: {ip} ({mac})")
+            
+        except Exception as e:
+            logging.error(f"Error añadiendo dispositivo {ip}: {str(e)}")
+            raise
 
-    def device_exists(self, mac: str) -> bool:
-        """
-        Verifica si un dispositivo existe en el inventario por su MAC.
-        
-        Args:
-            mac: Dirección MAC a buscar
+    def device_exists(self, identifier: str) -> bool:
+        """Verifica si un dispositivo existe por MAC o IP"""
+        if not self.devices_file.exists():
+            return False
             
-        Returns:
-            bool: True si el dispositivo existe
-        """
-        with open(self.devices_file, 'r') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['mac'].lower() == mac.lower():
-                    return True
-        return False
+        try:
+            with open(self.devices_file, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row['mac'] == identifier or row['ip'] == identifier:
+                        return True
+            return False
+        except Exception as e:
+            logging.error(f"Error verificando dispositivo: {str(e)}")
+            return False
+            """
+            Verifica si un dispositivo existe en el inventario por su MAC.
+            
+            Args:
+                mac: Dirección MAC a buscar
+                
+            Returns:
+                bool: True si el dispositivo existe
+            """
+            with open(self.devices_file, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row['mac'].lower() == mac.lower():
+                        return True
+            return False
 
     def _determine_status(self, mac: str, ip: str) -> str:
         """

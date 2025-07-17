@@ -5,7 +5,8 @@ requests>=2.25.1           # Para peticiones HTTP (notificaciones Telegram)
 
 # Procesamiento de redes
 ipaddress>=1.0.23          # Para manejo de direcciones IP (incluido en stdlib en Python 3+)
-python-nmap>=0.7.1         # Opcional: para escaneos avanzados
+netifaces>=0.11.0          # Para obtener interfaces de red
+python-nmap>=0.7.1         # Opcional: para escaneos redes remotas
 scapy>=2.4.5               # Opcional: alternativa a arp-scan
 
 # Manejo de datos

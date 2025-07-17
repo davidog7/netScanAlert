@@ -1,3 +1,8 @@
-# Archivo networks.txt - Redes a escanear
-# Solo escanear la red 192.168.53.0/24
-192.168.53.0/24
+# Formato: interfaz:red
+# Puedes especificar solo la red (se usará eth0 por defecto)
+# o interfaz:red para una interfaz específica
+
+enp0s3:10.0.2.0/24
+eth0:192.168.4.0/24
+
+#10.0.0.0/24  # Esta usará eth0 por defecto

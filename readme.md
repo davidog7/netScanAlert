@@ -3,7 +3,9 @@ NetScanAlert es un sistema de escaneo y monitoreo continuo de redes con el fin d
 ## 1.- Instalar dependencias:
 ```bash
     sudo apt update
-    sudo apt install git python3 python3-pip python3-venv arp-scan #(arp-scan requiere permisos sudo)
+    sudo apt install git python3 python3-pip python3-venv arp-scan nmap #(arp-scan requiere permisos sudo)
+    # En /etc/sudoers.d/netScanAlert (sudo visudo)
+    usuario ALL=(ALL) NOPASSWD: /usr/bin/nmap, /usr/bin/arp-scan
     # Crear el entorno virtual en tu home
     mkdir -p ~/venvs
     python3 -m venv ~/venvs/netScanAlert
