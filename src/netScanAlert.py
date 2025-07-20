@@ -9,12 +9,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 from typing import List, Dict
 
-# Configuración de logging
+# En netScanAlert.py, modifica la configuración de logging:
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('netScanAlert.log'),
+        logging.FileHandler('../log/netScanAlert.log'),  # Cambia esta línea
         logging.StreamHandler()
     ]
 )

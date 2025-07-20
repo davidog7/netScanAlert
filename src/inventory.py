@@ -34,10 +34,9 @@ class FileInventory:
         self.whitelist_file = self.data_dir / 'whitelist.txt'
         self.ip_whitelist_file = self.data_dir / 'ip_whitelist.txt'
         self.blacklist_file = self.data_dir / 'blacklist.txt'
-        self.history_file = self.data_dir / 'history.log'
         
         for f in [self.whitelist_file, self.ip_whitelist_file,
-                 self.blacklist_file, self.history_file]:
+                 self.blacklist_file]:
             f.touch(exist_ok=True)
 
     def validate_ip(self, ip_str: str) -> bool:
@@ -167,18 +166,6 @@ class FileInventory:
                 return 'blocked'
         
         return 'unknown'
-
-    def _log_connection(self, mac: str, ip: str, event: str) -> None:
-        """
-        Registra un evento de conexión en el historial.
-        
-        Args:
-            mac: Dirección MAC del dispositivo
-            ip: Dirección IP del dispositivo
-            event: Tipo de evento ('connected', 'disconnected')
-        """
-        with open(self.history_file, 'a') as f:
-            f.write(f"{datetime.now().isoformat()},{mac},{ip},{event}\n")
 
     def whitelist_device(self, identifier: str) -> None:
         """

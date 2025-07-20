@@ -37,7 +37,7 @@ def init():
     # Crear directorios necesarios
     (BASE_DIR / "config").mkdir(exist_ok=True)
     (BASE_DIR / "data").mkdir(exist_ok=True)
-    
+    (BASE_DIR / "log").mkdir(exist_ok=True)
     # Crear archivo .env si no existe
     if not ENV_PATH.exists():
         ENV_PATH.write_text(

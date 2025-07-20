@@ -31,10 +31,11 @@ NetScanAlert es un sistema de escaneo y monitoreo continuo de redes con el fin d
 ## 3.- Ejecutar:
 ```bash
    # Ejecutar el programa en modo monitoreo:
-        python3 netScanAlert.py 
+    cd ./src
+    python3 netScanAlert.py 
     # O en segundo plano:
-        nohup python3 netScanAlert.py > /dev/null 2>&1 &
-    # monitoreo del log
+    nohup python3 netScanAlert.py > /dev/null 2>&1 &
+    # Monitoreo del log
     tail -f netScanAlert.log
 ```
 
