@@ -3,3 +3,4 @@ config/.env
 config/networks.txt
 src/__pycache__
 data
+log
