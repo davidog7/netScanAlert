@@ -22,7 +22,7 @@ NetScanAlert es un sistema de escaneo y monitoreo continuo de redes con el fin d
     python cli.py init
     # Añadir las redes a escanear en el archivo ./config/networks.txt
     nano ./config/networks.txt
-    # Configurar Telegram, opcional pero recomendado. Se recomienda mejor usar variables de entorno en entornos productivos:
+    # Configurar Telegram, opcional pero recomendado.
     python cli.py set-telegram-token
     python cli.py set-telegram-chat
     # Ver configuración actual
